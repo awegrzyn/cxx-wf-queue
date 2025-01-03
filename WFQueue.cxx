@@ -23,17 +23,17 @@ class WFQueue {
   WFQueue& operator=(WFQueue&&) = delete;
 
   auto empty() const noexcept {
-    return mPushCursor == mPullCursor;
+    return mPushCursor == mPopCursor;
   }
 
   auto full() const noexcept {
-    return mPushCursor - mPullCursor >= capacity();
+    return mPushCursor - mPopCursor >= capacity();
   }
 
   auto push(T const& val) {
     auto pushCursor = mPushCursor.load(std::memory_order_relaxed);
-    auto pullCursor = mPullCursor.load(std::memory_order_acquire);
-    if (full(pullCursor, pushCursor)) {
+    auto popCursor = mPopCursor.load(std::memory_order_acquire);
+    if (full(popCursor, pushCursor)) {
       return false;
     }
     new (&mQueue[pushCursor & mMask]) T(val);
@@ -41,21 +41,21 @@ class WFQueue {
     return true;
   }
 
-  auto pull(T& val) {
+  auto pop(T& val) {
     auto pushCursor = mPushCursor.load(std::memory_order_acquire);
-    auto pullCursor = mPullCursor.load(std::memory_order_relaxed);
-    if (empty(pullCursor, pushCursor)) {
+    auto popCursor = mPopCursor.load(std::memory_order_relaxed);
+    if (empty(popCursor, pushCursor)) {
       return false;
     }
-    val = mQueue[pullCursor & mMask];
-    mQueue[pullCursor & mMask].~T();
-    mPullCursor.store(pullCursor + 1, std::memory_order_release);
+    val = mQueue[popCursor & mMask];
+    mQueue[popCursor & mMask].~T();
+    mPopCursor.store(popCursor + 1, std::memory_order_release);
     return true;
   }
 
   ~WFQueue() {
     while(not empty()) {
-      mQueue[mPullCursor++ & mMask].~T();
+      mQueue[mPopCursor++ & mMask].~T();
     }
     std::allocator_traits<A>::deallocate(mAlloc, mQueue, capacity());
   }
@@ -66,18 +66,18 @@ class WFQueue {
   pointer mQueue;
   static_assert(std::atomic<size_type>::is_always_lock_free);
   alignas(std::hardware_destructive_interference_size) std::atomic<size_type> mPushCursor;
-  //alignas(std::hardware_destructive_interference_size) size_type mPullCursorForPushLoop;
-  alignas(std::hardware_destructive_interference_size) std::atomic<size_type> mPullCursor;
-  //alignas(std::hardware_destructive_interference_size) size_type mPushCursorForPullLoop;
+  //alignas(std::hardware_destructive_interference_size) size_type mPopCursorForPushLoop;
+  alignas(std::hardware_destructive_interference_size) std::atomic<size_type> mPopCursor;
+  //alignas(std::hardware_destructive_interference_size) size_type mPushCursorForPopLoop;
   char _mPadding[std::hardware_destructive_interference_size - sizeof(size_type)];
 
  private:
-  auto empty(size_type pullCursor, size_type pushCursor) const noexcept {
-    return pushCursor == pullCursor;
+  auto empty(size_type popCursor, size_type pushCursor) const noexcept {
+    return pushCursor == popCursor;
   }
 
-  auto full(size_type pullCursor, size_type pushCursor) const noexcept {
-     return pushCursor - pullCursor >= capacity();
+  auto full(size_type popCursor, size_type pushCursor) const noexcept {
+     return pushCursor - popCursor >= capacity();
   }
   auto capacity() const noexcept {
     return mMask + 1;

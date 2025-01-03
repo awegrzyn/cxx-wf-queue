@@ -1,7 +1,13 @@
 #include "WFQueue.cxx"
+#include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
 #include <iostream>
 #include <benchmark/benchmark.h>
+
+constexpr auto cpu1 = 1;
+constexpr auto cpu2 = 2;
+constexpr auto iters = 100'000'000l;
+constexpr auto queueSize = 65536;
 
 static void pinThread(int cpu) {
     if (cpu < 0) {
@@ -16,26 +22,25 @@ static void pinThread(int cpu) {
     }
 }
 
-constexpr auto cpu1 = 1;
-constexpr auto cpu2 = 2;
+using boost::lockfree::spsc_queue;
+using boost::lockfree::fixed_sized;
 
-static void BENCHMARK_queue(benchmark::State &state)
-{
-    constexpr auto iters = 100'000'000l;
-    constexpr auto fifoSize = 65536;
-    WFQueue<std::int_fast64_t> fifo(fifoSize);
+template<template<typename> class QueueT>
+void BENCHMARK_queue(benchmark::State &state) {
+  using queue_type = QueueT<std::int_fast64_t>;
+  queue_type queue(queueSize);
 
     auto t = std::jthread([&] {
       pinThread(cpu1);
-      // pull warmup
-      for (std::int_fast64_t i = 0; i < fifoSize; ++i) {
+      // pop warmup
+      for (std::int_fast64_t i = 0; i < queueSize; ++i) {
         std::int_fast64_t val = 0;
-        while (auto again = not fifo.pull(val)) benchmark::DoNotOptimize(again);
+        while (auto again = not queue.pop(val)) benchmark::DoNotOptimize(again);
       }
 
       for (std::int_fast64_t i = 0; i < iters; ++i) {
         std::int_fast64_t val = 0;
-        while (auto again = not fifo.pull(val)) benchmark::DoNotOptimize(again);
+        while (auto again = not queue.pop(val)) benchmark::DoNotOptimize(again);
         if (val != i) {
           throw std::runtime_error("Value does not match");
         }
@@ -45,21 +50,22 @@ static void BENCHMARK_queue(benchmark::State &state)
 
     pinThread(cpu2);
     // push warmup
-    for (std::int_fast64_t i = 0; i < fifoSize; ++i) {
-      while (auto again = not fifo.push(i)) benchmark::DoNotOptimize(again);
+    for (std::int_fast64_t i = 0; i < queueSize; ++i) {
+      while (auto again = not queue.push(i)) benchmark::DoNotOptimize(again);
     }
-    while (auto again = not fifo.empty()) benchmark::DoNotOptimize(again);
+    while (auto again = not queue.empty()) benchmark::DoNotOptimize(again);
 
     std::int_fast64_t i = 0;
     for (; i < iters; ++i) {
-      while (auto again = not fifo.push(i)) benchmark::DoNotOptimize(again);
+      while (auto again = not queue.push(i)) benchmark::DoNotOptimize(again);
     }
-    while (auto again = not fifo.empty()) benchmark::DoNotOptimize(again);
+    while (auto again = not queue.empty()) benchmark::DoNotOptimize(again);
 
     state.counters["ops/sec"] = benchmark::Counter(double(i), benchmark::Counter::kIsRate);
     state.PauseTiming();
-    fifo.push(-1);
+    queue.push(-1);
 }
 
-BENCHMARK(BENCHMARK_queue);
+BENCHMARK_TEMPLATE(BENCHMARK_queue, WFQueue);
+BENCHMARK_TEMPLATE(BENCHMARK_queue, spsc_queue);
 BENCHMARK_MAIN();
