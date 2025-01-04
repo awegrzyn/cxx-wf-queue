@@ -6,7 +6,7 @@
 
 constexpr auto cpu1 = 1;
 constexpr auto cpu2 = 2;
-constexpr auto iters = 100'000'000l;
+constexpr auto iters = 400'000'000l;
 constexpr auto queueSize = 65536;
 
 static void pinThread(int cpu) {
@@ -64,5 +64,9 @@ void BENCHMARK_queue(benchmark::State &state) {
 }
 
 BENCHMARK_TEMPLATE(BENCHMARK_queue, WFQueue);
+
+#ifdef WFQUEUE_WITH_BOOST
 BENCHMARK_TEMPLATE(BENCHMARK_queue, spsc_queue);
+#endif
+
 BENCHMARK_MAIN();
