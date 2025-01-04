@@ -11,8 +11,7 @@
 //   3. T must be trivial and atomic of size_type must be lock free
 //
 // Credits:
-//  - Heavily-inspirted by Charles Frasch presentation at CppCon 2023
-//  - Idx optimisation inspired by Erik Rigtorp
+//  - Heavily-inspirted by Charles Frasch presentation at CppCon 2023 and Erik Rigtorp's SPSCQueue
 //  - Module optimisation: "n % 2^i = n & (2^i - 1)"
 //
 template<typename T> requires std::is_trivial_v<T>

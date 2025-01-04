@@ -1,12 +1,14 @@
 #include "WFQueue.cxx"
+#ifdef WFQUEUE_WITH_BOOST
 #include <boost/lockfree/spsc_queue.hpp>
+#endif
 #include <thread>
 #include <iostream>
 #include <benchmark/benchmark.h>
 
 constexpr auto cpu1 = 1;
 constexpr auto cpu2 = 2;
-constexpr auto iters = 100'000'000l;
+constexpr auto iters = 400'000'000l;
 constexpr auto queueSize = 65536;
 
 static void pinThread(int cpu) {
@@ -19,8 +21,9 @@ static void pinThread(int cpu) {
     }
 }
 
+#ifdef WFQUEUE_WITH_BOOST
 using boost::lockfree::spsc_queue;
-using boost::lockfree::fixed_sized;
+#endif
 
 template<template<typename> class QueueT>
 void BENCHMARK_queue(benchmark::State &state) {
@@ -64,5 +67,9 @@ void BENCHMARK_queue(benchmark::State &state) {
 }
 
 BENCHMARK_TEMPLATE(BENCHMARK_queue, WFQueue);
+
+#ifdef WFQUEUE_WITH_BOOST
 BENCHMARK_TEMPLATE(BENCHMARK_queue, spsc_queue);
+#endif
+
 BENCHMARK_MAIN();

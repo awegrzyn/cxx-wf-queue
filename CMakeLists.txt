@@ -5,21 +5,31 @@ project(WFQueue
   LANGUAGES CXX
 )
 
-option(THREAD_SANITIZER OFF)
-
-set(Boost_USE_STATIC_RUNTIME OFF)
-set(Boost_USE_STATIC_LIBS OFF)
-set(BUILD_SHARED_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
 
 find_package(benchmark REQUIRED)
-find_package(Boost 1.87 REQUIRED)
+find_package(Boost 1.87)
 
 add_executable(bench bench_queue.cxx)
-target_compile_options(bench PRIVATE -Wno-interference-size)
-target_link_libraries(bench PRIVATE benchmark::benchmark Boost::boost)
+
+target_compile_options(bench PRIVATE -Wno-interference-size -Wall -pedantic -Wextra -Werror -O2)
+
+if (Boost_FOUND)
+  target_compile_definitions(bench PRIVATE WFQUEUE_WITH_BOOST)
+endif()
+
+target_link_libraries(bench
+  PRIVATE
+    benchmark::benchmark
+    $<$<BOOL:${Boost_FOUND}>:Boost::boost>
+    $<$<BOOL:${THREAD_SANITIZER}>:pthread>
+    $<$<BOOL:${THREAD_SANITIZER}>:tsan>
+)
+
 target_compile_features(bench PRIVATE cxx_std_23)
-if (THREAD_SANITIZER)
-    target_compile_options(bench PRIVATE -fsanitize=thread)
-    target_link_libraries(bench PRIVATE pthread tsan)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_link_options(bench PRIVATE -fsanitize=undefined -fsanitize=address)
 endif()
