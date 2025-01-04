@@ -1,5 +1,7 @@
 #include "WFQueue.cxx"
+#ifdef WFQUEUE_WITH_BOOST
 #include <boost/lockfree/spsc_queue.hpp>
+#endif
 #include <thread>
 #include <iostream>
 #include <benchmark/benchmark.h>
