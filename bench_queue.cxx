@@ -10,14 +10,11 @@ constexpr auto iters = 100'000'000l;
 constexpr auto queueSize = 65536;
 
 static void pinThread(int cpu) {
-    if (cpu < 0) {
-        return;
-    }
     ::cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(cpu, &cpuset);
     if (::pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) == -1) {
-        std::perror("pthread_setaffinity_rp");
+        std::perror("Unable to pin thread to selected CPU core");
         std::exit(EXIT_FAILURE);
     }
 }
