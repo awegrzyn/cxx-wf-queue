@@ -1,12 +1,13 @@
 name: Build and test
 on: [pull_request]
 jobs:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v2
-    - name: Run CMake
-      run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug
-    - name: Build project
-      run: cd build && make
-    - name: Test
-      run: cd build && ./bench
+  ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run CMake
+        run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug
+      - name: Build project
+        run: cd build && make
+      - name: Test
+        run: cd build && ./bench
