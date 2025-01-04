@@ -21,8 +21,9 @@ static void pinThread(int cpu) {
     }
 }
 
+#ifdef WFQUEUE_WITH_BOOST
 using boost::lockfree::spsc_queue;
-using boost::lockfree::fixed_sized;
+#endif
 
 template<template<typename> class QueueT>
 void BENCHMARK_queue(benchmark::State &state) {
