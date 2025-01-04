@@ -5,6 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Google benchmark
+        run: sudo apt-get install -y libbenchmark-dev
       - name: Run CMake
         run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug
       - name: Build project
