@@ -11,6 +11,7 @@ endif()
 
 find_package(benchmark REQUIRED)
 find_package(Boost 1.87)
+find_package(mimalloc 2.1 REQUIRED)
 
 add_executable(bench bench_queue.cxx)
 
@@ -23,6 +24,7 @@ endif()
 target_link_libraries(bench
   PRIVATE
     benchmark::benchmark
+    mimalloc
     $<$<BOOL:${Boost_FOUND}>:Boost::boost>
     $<$<BOOL:${THREAD_SANITIZER}>:pthread>
     $<$<BOOL:${THREAD_SANITIZER}>:tsan>

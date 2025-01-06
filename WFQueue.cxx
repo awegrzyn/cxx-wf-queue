@@ -1,3 +1,4 @@
+#include <mimalloc.h>
 #include <memory>
 #include <atomic>
 #include <cassert>
@@ -18,10 +19,11 @@ template<typename T> requires std::is_trivial_v<T>
 class WFQueue {
  public:
   using pointer = T*;
-  using A = std::allocator<T>;
+  using A = mi_stl_allocator<T>;
   using size_type = typename std::allocator_traits<A>::size_type;
 
   WFQueue(size_type capacity) :
+    mAlloc{},
     mMask{capacity - 1},
     mQueue{std::allocator_traits<A>::allocate(mAlloc, capacity)},
     mPopIdxForPushLoop{},
