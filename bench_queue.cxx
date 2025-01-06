@@ -9,7 +9,7 @@ constexpr auto iters = 400'000'000l;
 constexpr auto queueSize = 65536;
 
 int main() {
-  WFQueue<std::int_fast64_t> queue(queueSize);
+  WfQueue<std::int_fast64_t> queue(queueSize);
   auto t = std::jthread([&] {
     pinThread(cpu1);
     // pop warmup

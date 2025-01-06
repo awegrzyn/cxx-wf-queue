@@ -16,13 +16,13 @@
 //  - Module optimisation: "n % 2^i = n & (2^i - 1)"
 //
 template<typename T> requires std::is_trivial_v<T>
-class WFQueue {
+class WfQueue {
  public:
   using pointer = T*;
   using A = mi_stl_allocator<T>;
   using size_type = typename std::allocator_traits<A>::size_type;
 
-  WFQueue(size_type capacity) :
+  WfQueue(size_type capacity) :
     mAlloc{},
     mMask{capacity - 1},
     mQueue{std::allocator_traits<A>::allocate(mAlloc, capacity)},
@@ -30,10 +30,10 @@ class WFQueue {
     mPushIdxForPopLoop{}
     {}
 
-  WFQueue(WFQueue const&) = delete;
-  WFQueue& operator=(WFQueue const&) = delete;
-  WFQueue(WFQueue&&) = delete;
-  WFQueue& operator=(WFQueue&&) = delete;
+  WfQueue(WfQueue const&) = delete;
+  WfQueue& operator=(WfQueue const&) = delete;
+  WfQueue(WfQueue&&) = delete;
+  WfQueue& operator=(WfQueue&&) = delete;
 
   auto empty() const noexcept {
     return mPushIdx == mPopIdx;
@@ -70,7 +70,7 @@ class WFQueue {
     return true;
   }
 
-  ~WFQueue() {
+  ~WfQueue() {
     while(not empty()) {
       mQueue[mPopIdx++ & mMask].~T();
     }

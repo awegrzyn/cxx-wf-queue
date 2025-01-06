@@ -57,7 +57,7 @@ void BENCHMARK_queue(benchmark::State &state) {
     queue.push(-1);
 }
 
-BENCHMARK_TEMPLATE(BENCHMARK_queue, WFQueue);
+BENCHMARK_TEMPLATE(BENCHMARK_queue, WfQueue);
 
 #ifdef WFQUEUE_WITH_BOOST
 BENCHMARK_TEMPLATE(BENCHMARK_queue, spsc_queue);
