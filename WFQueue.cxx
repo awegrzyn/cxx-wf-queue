@@ -1,3 +1,4 @@
+#include <mimalloc-new-delete.h>
 #include <mimalloc.h>
 #include <memory>
 #include <atomic>
