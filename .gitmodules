@@ -1,0 +1,3 @@
+[submodule "3rd-party/SPSCQueue"]
+	path = 3rd-party/SPSCQueue
+	url = https://github.com/rigtorp/SPSCQueue.git

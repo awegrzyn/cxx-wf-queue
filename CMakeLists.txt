@@ -9,6 +9,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
+find_file(SPSCQueueIncludes SPSCQueue.h PATHS 3rd-party/SPSCQueue/include/rigtorp NO_DEFAULT_PATH)
+
 find_package(benchmark)
 find_package(Boost 1.87)
 find_package(mimalloc 3.0 REQUIRED)
@@ -25,6 +27,11 @@ if (benchmark_FOUND)
 
   if (Boost_FOUND)
     target_compile_definitions(gbench PRIVATE WFQUEUE_WITH_BOOST)
+  endif()
+
+  if (SPSCQueueIncludes)
+    target_include_directories(gbench PRIVATE 3rd-party/SPSCQueue/include)
+    target_compile_definitions(gbench PRIVATE WFQUEUE_WITH_SPSCQUEUE)
   endif()
 
   target_link_libraries(gbench
