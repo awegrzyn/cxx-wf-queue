@@ -82,11 +82,11 @@ class WfQueue {
   const size_type mMask;
   pointer mQueue;
   static_assert(std::atomic<size_type>::is_always_lock_free);
-  alignas(std::hardware_destructive_interference_size) std::atomic<size_type> mPushIdx;
-  alignas(std::hardware_destructive_interference_size) size_type mPopIdxForPushLoop;
-  alignas(std::hardware_destructive_interference_size) std::atomic<size_type> mPopIdx;
-  alignas(std::hardware_destructive_interference_size) size_type mPushIdxForPopLoop;
-  char _mPadding[std::hardware_destructive_interference_size - sizeof(size_type)];
+  alignas(64) std::atomic<size_type> mPushIdx;
+  alignas(64) size_type mPopIdxForPushLoop;
+  alignas(64) std::atomic<size_type> mPopIdx;
+  alignas(64) size_type mPushIdxForPopLoop;
+  char _mPadding[64 - sizeof(size_type)];
 
  private:
   auto empty(size_type popIdx, size_type pushIdx) const noexcept {
